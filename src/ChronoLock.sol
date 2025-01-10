@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.28;
+pragma solidity ^0.8.28;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -28,8 +28,15 @@ contract ChronoLock {
 
     // events
 
-    // @notice Emitted when a new vesting schedule is added 
-    event TokensVested(address indexed company, address indexed beneficiary, address indexed token, uint256 amount, uint256 startTime, uint256 duration);
+    // @notice Emitted when a new vesting schedule is added
+    event TokensVested(
+        address indexed company,
+        address indexed beneficiary,
+        address indexed token,
+        uint256 amount,
+        uint256 startTime,
+        uint256 duration
+    );
 
     // errors
 
@@ -51,7 +58,6 @@ contract ChronoLock {
         uint256 _startTime,
         uint256 _duration
     ) public {
-
         // ensure amount is above 0
         require(_amount > 0, AmountTooLow(_amount));
 
@@ -84,6 +90,5 @@ contract ChronoLock {
 
         // emit event
         emit TokensVested(msg.sender, _beneficiary, _token, _amount, _startTime, _duration);
-    }
     }
 }
