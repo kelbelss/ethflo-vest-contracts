@@ -47,5 +47,13 @@ contract ChronoLockTest is Test {
         assertEq(startTime, currentTimestamp);
         assertEq(durationFromSchedule, duration);
         assertEq(claimedAmount, 0);
+
+        console.log("Token: expected %s, got %s", address(mockToken), token);
+        console.log("Company: expected %s, got %s", USER, company);
+        console.log("Beneficiary: expected %s, got %s", BENEFICIARY, beneficiary);
+        console.log("Total Amount: expected %s, got %s", amount, totalAmount);
+        console.log("Start Time: expected %s, got %s", currentTimestamp, startTime);
+        console.log("Duration: expected %s, got %s", duration, durationFromSchedule);
+        console.log("Claimed Amount: expected 0, got %s", claimedAmount);
     }
 }
