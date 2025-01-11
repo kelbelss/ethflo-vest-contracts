@@ -66,10 +66,18 @@ contract ChronoLock {
 
         // allowance - Returns the remaining number of tokens that `spender` will be allowed to spend on behalf of `owner` through {transferFrom}.
         // ensure company calling function has approved this contract to spend the amount of tokens
-        require(
-            IERC20(_token).allowance(msg.sender, address(this)) >= _amount,
-            InsufficientAllowance(IERC20(_token).allowance(msg.sender, address(this)), _amount)
-        );
+        // require(
+        //     IERC20(_token).allowance(msg.sender, address(this)) >= _amount,
+        //     InsufficientAllowance(IERC20(_token).allowance(msg.sender, address(this)), _amount)
+        // );
+
+        // transfer the tokens from the company to this contract
+        bool success = IERC20(_token).transferFrom(msg.sender, address(this), _amount);
+        // if (!success) {
+        //     revert InsufficientAllowance(IERC20(_token).allowance(msg.sender, address(this)), _amount);
+        // }
+
+        require(success, InsufficientAllowance(IERC20(_token).allowance(msg.sender, address(this)), _amount));
 
         // check if bene already has one?
         // calculate start time and end time?
@@ -92,3 +100,7 @@ contract ChronoLock {
         emit TokensVested(msg.sender, _beneficiary, _token, _amount, _startTime, _duration);
     }
 }
+
+// TODO:
+// 1. Change allowance to transferFrom
+// 2.
