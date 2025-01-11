@@ -3,17 +3,17 @@ pragma solidity ^0.8.28;
 
 import {Test, console} from "forge-std/Test.sol";
 import {ChronoLock} from "../src/ChronoLock.sol";
-import {MockERC20} from "./MockERC20.sol";
+import {ERC20Mock} from "lib/openzeppelin-contracts/contracts/mocks/token/ERC20Mock.sol";
 
 contract ChronoLockTest is Test {
-    MockERC20 mockToken;
+    ERC20Mock mockToken;
     ChronoLock chronoLock;
 
     address USER = vm.addr(1);
     address BENEFICIARY = vm.addr(2);
 
     function setUp() public {
-        mockToken = new MockERC20("Mock Token", "MTK", 18);
+        mockToken = new ERC20Mock();
         chronoLock = new ChronoLock();
 
         mockToken.mint(USER, 1000 ether);
