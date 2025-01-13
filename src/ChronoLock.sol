@@ -11,6 +11,7 @@ contract ChronoLock {
 
     // use multisig for owner
     address public owner;
+    uint256 internal s_totalEscrowedFunds;
 
     // Mapping - store vesting schedules: Company Address => (Beneficiary Address => VestingSchedule)
     mapping(address company => mapping(address beneficiary => VestingSchedule)) public vestingSchedules;
@@ -40,6 +41,8 @@ contract ChronoLock {
         uint256 startTime,
         uint256 duration
     );
+    // @notice Emitted when tokens are claimed
+    // event TokensClaimed();
 
     // errors
 
@@ -88,7 +91,55 @@ contract ChronoLock {
         // add the new vesting schedule to the mapping
         vestingSchedules[msg.sender][_beneficiary] = newVestingSchedule;
 
+        // update accounting
+        s_totalEscrowedFunds += _amount;
+
         // emit event
         emit TokensVested(msg.sender, _beneficiary, _token, _amount, _startTime, _duration);
+    }
+
+    function claimTokens(address company) public {
+        // get the vesting schedule
+        VestingSchedule storage vestingSchedule = vestingSchedules[company][msg.sender];
+
+        // ensure claimer is beneficiary
+
+        // ensure the beneficiary has a vesting schedule
+        require(vestingSchedule.totalAmount > 0, "No vesting schedule found"); // NoVestingScheduleFound
+
+        // ensure the beneficiary has not claimed all tokens
+        require(vestingSchedule.claimedAmount < vestingSchedule.totalAmount, "All tokens claimed"); // AllTokensClaimed
+
+        // calculate the amount of tokens that can be claimed
+        uint256 claimableAmount = _calculateClaimableAmount(vestingSchedule);
+
+        // ensure the beneficiary has tokens to claim
+        require(claimableAmount > 0, "No tokens to claim"); // NoTokensToClaim
+
+        // update the claimed amount
+        vestingSchedule.claimedAmount += claimableAmount;
+
+        // update accounting first
+        s_totalEscrowedFunds -= claimableAmount;
+
+        // solady for gas efficiency
+        vestingSchedule.token.safeTransfer(msg.sender, claimableAmount);
+
+        // emit event
+        // emit TokensClaimed();
+    }
+
+    function _calculateClaimableAmount(VestingSchedule memory _vestingSchedule) internal view returns (uint256) {
+        // calculate the time passed since the vesting began
+        uint256 elapsedTime = block.timestamp - _vestingSchedule.startTime;
+
+        // calculate the amount of tokens that can be claimed
+        uint256 claimableAmount = (_vestingSchedule.totalAmount * elapsedTime) / _vestingSchedule.duration;
+
+        // ensure the claimable amount is not more than the total amount
+
+        // ensure the claimable amount is not greater than the remaining amount
+
+        return claimableAmount;
     }
 }
