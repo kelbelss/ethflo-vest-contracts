@@ -2,6 +2,6 @@
 pragma solidity ^0.8.28;
 
 import {Script, console} from "forge-std/Script.sol";
-import {ChronoLock} from "../src/ChronoLock.sol";
+import {Vest} from "../src/Vest.sol";
 
-contract ChronoLockScript is Script {}
+contract VestScript is Script {}

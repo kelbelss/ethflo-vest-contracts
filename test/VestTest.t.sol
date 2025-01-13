@@ -2,19 +2,19 @@
 pragma solidity ^0.8.28;
 
 import {Test, console} from "forge-std/Test.sol";
-import {ChronoLock} from "../src/ChronoLock.sol";
+import {Vest} from "../src/Vest.sol";
 import {ERC20Mock} from "lib/openzeppelin-contracts/contracts/mocks/token/ERC20Mock.sol";
 
-contract ChronoLockTest is Test {
+contract VestTest is Test {
     ERC20Mock mockToken;
-    ChronoLock chronoLock;
+    Vest vest;
 
     address USER = vm.addr(1);
     address BENEFICIARY = vm.addr(2);
 
     function setUp() public {
         mockToken = new ERC20Mock();
-        chronoLock = new ChronoLock();
+        vest = new Vest();
 
         mockToken.mint(USER, 1000 ether);
     }
@@ -25,8 +25,8 @@ contract ChronoLockTest is Test {
         uint256 duration = 1000;
 
         vm.startPrank(USER);
-        mockToken.approve(address(chronoLock), amount);
-        chronoLock.addBeneficiary(address(mockToken), BENEFICIARY, amount, currentTimestamp, duration);
+        mockToken.approve(address(vest), amount);
+        vest.addBeneficiary(address(mockToken), BENEFICIARY, amount, currentTimestamp, duration);
 
         // decompose tuple manually
         (
@@ -37,7 +37,7 @@ contract ChronoLockTest is Test {
             uint256 startTime,
             uint256 durationFromSchedule,
             uint256 claimedAmount
-        ) = chronoLock.vestingSchedules(USER, BENEFICIARY);
+        ) = vest.vestingSchedules(USER, BENEFICIARY);
 
         // Validate vesting schedule
         assertEq(token, address(mockToken));
