@@ -17,8 +17,8 @@ contract ChronoLock {
     // vesting schedule for a beneficiary.
     struct VestingSchedule {
         address token; // Address of company ERC20
-        address company; // Address of the company creating the schedule
-        address beneficiary; // Address of beneficiary
+        // address company; // Address of the company creating the schedule
+        // address beneficiary; // Address of beneficiary
         uint256 totalAmount; // Total amount of tokens to be vested
         uint256 startTime; // block.timestamp when vesting begins
         uint256 duration; // Duration of the vesting period (seconds)
@@ -41,7 +41,7 @@ contract ChronoLock {
     // errors
 
     // addBeneficiary Errors
-    error InsufficientAllowance(uint256 balance, uint256 amount_required);
+    error InsufficientAmount(uint256 balance, uint256 amount);
     error AmountTooLow(uint256 amount);
     error DurationTooLow(uint256 duration);
 
@@ -77,7 +77,7 @@ contract ChronoLock {
         //     revert InsufficientAllowance(IERC20(_token).allowance(msg.sender, address(this)), _amount);
         // }
 
-        require(success, InsufficientAllowance(IERC20(_token).allowance(msg.sender, address(this)), _amount));
+        require(success, InsufficientAmount(IERC20(_token).allowance(msg.sender, address(this)), _amount));
 
         // check if bene already has one?
         // calculate start time and end time?
@@ -85,8 +85,8 @@ contract ChronoLock {
         // create a new vesting schedule
         VestingSchedule memory newVestingSchedule = VestingSchedule({
             token: _token,
-            company: msg.sender,
-            beneficiary: _beneficiary,
+            // company: msg.sender,
+            // beneficiary: _beneficiary,
             totalAmount: _amount,
             startTime: _startTime,
             duration: _duration,
@@ -102,5 +102,6 @@ contract ChronoLock {
 }
 
 // TODO:
-// 1. Change allowance to transferFrom
-// 2.
+// 1. Remove beneficiary and company from the struct
+// 2. Clean up code
+// 3. Add NatSpec and inline comments

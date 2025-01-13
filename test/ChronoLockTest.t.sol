@@ -31,8 +31,8 @@ contract ChronoLockTest is Test {
         // decompose tuple manually
         (
             address token,
-            address company,
-            address beneficiary,
+            // address company,
+            // address beneficiary,
             uint256 totalAmount,
             uint256 startTime,
             uint256 durationFromSchedule,
@@ -41,19 +41,24 @@ contract ChronoLockTest is Test {
 
         // Validate vesting schedule
         assertEq(token, address(mockToken));
-        assertEq(company, USER);
-        assertEq(beneficiary, BENEFICIARY);
+        // assertEq(company, USER);
+        // assertEq(beneficiary, BENEFICIARY);
         assertEq(totalAmount, amount);
         assertEq(startTime, currentTimestamp);
         assertEq(durationFromSchedule, duration);
         assertEq(claimedAmount, 0);
 
         console.log("Token: expected %s, got %s", address(mockToken), token);
-        console.log("Company: expected %s, got %s", USER, company);
-        console.log("Beneficiary: expected %s, got %s", BENEFICIARY, beneficiary);
+        // console.log("Company: expected %s, got %s", USER, company);
+        // console.log("Beneficiary: expected %s, got %s", BENEFICIARY, beneficiary);
         console.log("Total Amount: expected %s, got %s", amount, totalAmount);
         console.log("Start Time: expected %s, got %s", currentTimestamp, startTime);
         console.log("Duration: expected %s, got %s", duration, durationFromSchedule);
         console.log("Claimed Amount: expected 0, got %s", claimedAmount);
     }
+
+    // function test_addBeneficiary_fail_AmountTooLow() public {}
+    // function test_addBeneficiary_fail_DurationTooLow() public {}
+    // function test_addBeneficiary_fail_InsufficientAmount() public {}
+    // function test_addBeneficiary_event_TokensVested() public {}
 }
