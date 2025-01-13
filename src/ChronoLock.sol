@@ -2,8 +2,11 @@
 pragma solidity ^0.8.28;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeTransferLib} from "lib/solady/src/utils/SafeTransferLib.sol";
 
 contract ChronoLock {
+    using SafeTransferLib for address;
+
     // state variables
 
     // use multisig for owner
@@ -64,23 +67,12 @@ contract ChronoLock {
         // ensure duration is above 0
         require(_duration > 0, DurationTooLow(_duration));
 
-        // allowance - Returns the remaining number of tokens that `spender` will be allowed to spend on behalf of `owner` through {transferFrom}.
-        // ensure company calling function has approved this contract to spend the amount of tokens
-        // require(
-        //     IERC20(_token).allowance(msg.sender, address(this)) >= _amount,
-        //     InsufficientAllowance(IERC20(_token).allowance(msg.sender, address(this)), _amount)
-        // );
-
         // transfer the tokens from the company to this contract
-        bool success = IERC20(_token).transferFrom(msg.sender, address(this), _amount);
-        // if (!success) {
-        //     revert InsufficientAllowance(IERC20(_token).allowance(msg.sender, address(this)), _amount);
-        // }
+        // bool success = IERC20(_token).transferFrom(msg.sender, address(this), _amount);
+        // require(success, InsufficientAmount(IERC20(_token).allowance(msg.sender, address(this)), _amount));
 
-        require(success, InsufficientAmount(IERC20(_token).allowance(msg.sender, address(this)), _amount));
-
-        // check if bene already has one?
-        // calculate start time and end time?
+        // solady for gas efficiency
+        _token.safeTransferFrom(msg.sender, address(this), _amount);
 
         // create a new vesting schedule
         VestingSchedule memory newVestingSchedule = VestingSchedule({
@@ -100,8 +92,3 @@ contract ChronoLock {
         emit TokensVested(msg.sender, _beneficiary, _token, _amount, _startTime, _duration);
     }
 }
-
-// TODO:
-// 1. Remove beneficiary and company from the struct
-// 2. Clean up code
-// 3. Add NatSpec and inline comments
