@@ -7,11 +7,18 @@ import {SafeTransferLib} from "lib/solady/src/utils/SafeTransferLib.sol";
 contract ChronoLock {
     using SafeTransferLib for address;
 
-    // state variables
+    ///////////////////
+    // Errors
+    ///////////////////
 
-    // use multisig for owner
-    address public owner;
-    uint256 internal s_totalEscrowedFunds;
+    // addBeneficiary Errors
+    error InsufficientAmount(uint256 balance, uint256 amount);
+    error AmountTooLow(uint256 amount);
+    error DurationTooLow(uint256 duration);
+
+    ///////////////////
+    // Types
+    ///////////////////
 
     // Mapping - store vesting schedules: Company Address => (Beneficiary Address => VestingSchedule)
     mapping(address company => mapping(address beneficiary => VestingSchedule)) public vestingSchedules;
@@ -30,7 +37,17 @@ contract ChronoLock {
         uint256 claimedAmount; // Amount of tokens already claimed
     }
 
-    // events
+    ///////////////////
+    // State Variables
+    ///////////////////
+
+    // use multisig for owner
+    address public owner;
+    uint256 internal s_totalEscrowedFunds;
+
+    ///////////////////
+    // Events
+    ///////////////////
 
     // @notice Emitted when a new vesting schedule is added
     event TokensVested(
@@ -44,18 +61,13 @@ contract ChronoLock {
     // @notice Emitted when tokens are claimed
     // event TokensClaimed();
 
-    // errors
-
-    // addBeneficiary Errors
-    error InsufficientAmount(uint256 balance, uint256 amount);
-    error AmountTooLow(uint256 amount);
-    error DurationTooLow(uint256 duration);
+    ///////////////////
+    // Functions
+    ///////////////////
 
     constructor() {
         owner = msg.sender;
     }
-
-    // functions
 
     function addBeneficiary(
         address _token,
