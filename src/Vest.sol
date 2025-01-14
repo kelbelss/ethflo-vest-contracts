@@ -2,6 +2,7 @@
 pragma solidity ^0.8.28;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {VestMathLib} from "src/Libraries/VestMathLib.sol";
 import {SafeTransferLib} from "lib/solady/src/utils/SafeTransferLib.sol";
 
 /*
@@ -137,13 +138,18 @@ contract Vest {
         require(vestingSchedule.claimedAmount < vestingSchedule.totalAmount, AllTokensClaimed());
 
         // calculate the amount of tokens that can be claimed
-        uint256 claimableAmount = _calculateClaimableAmount(vestingSchedule);
+        uint256 claimableAmount = VestMathLib.calculateClaimableAmount(
+            vestingSchedule.totalAmount, vestingSchedule.startTime, vestingSchedule.duration
+        );
 
         // ensure the beneficiary has tokens to claim
         require(claimableAmount > 0, NoTokensToClaim());
 
         // update the claimed amount
         vestingSchedule.claimedAmount += claimableAmount;
+
+        // update the vesting schedule
+        vestingSchedules[company][msg.sender].claimedAmount = claimableAmount;
 
         // update accounting first
         s_totalEscrowedFunds -= claimableAmount;
@@ -155,19 +161,19 @@ contract Vest {
         // emit TokensClaimed();
     }
 
-    function _calculateClaimableAmount(VestingSchedule memory _vestingSchedule) internal view returns (uint256) {
-        // calculate the time passed since the vesting began
-        uint256 elapsedTime = block.timestamp - _vestingSchedule.startTime;
+    // function _calculateClaimableAmount(VestingSchedule memory _vestingSchedule) internal view returns (uint256) {
+    //     // calculate the time passed since the vesting began
+    //     uint256 elapsedTime = block.timestamp - _vestingSchedule.startTime;
 
-        // calculate the amount of tokens that can be claimed
-        uint256 claimableAmount = (_vestingSchedule.totalAmount * elapsedTime) / _vestingSchedule.duration;
+    //     // calculate the amount of tokens that can be claimed
+    //     uint256 claimableAmount = (_vestingSchedule.totalAmount * elapsedTime) / _vestingSchedule.duration;
 
-        // ensure the claimable amount is not more than the total amount
+    //     // ensure the claimable amount is not more than the total amount
 
-        // ensure the claimable amount is not greater than the remaining amount
+    //     // ensure the claimable amount is not greater than the remaining amount
 
-        return claimableAmount;
-    }
+    //     return claimableAmount;
+    // }
 }
 
 // Notes
