@@ -25,6 +25,11 @@ contract Vest {
     error AmountTooLow(uint256 amount);
     error DurationTooLow(uint256 duration);
 
+    // claimTokens Errors
+    error NoVestingScheduleFound();
+    error AllTokensClaimed();
+    error NoTokensToClaim();
+
     ///////////////////
     // Types
     ///////////////////
@@ -123,19 +128,19 @@ contract Vest {
         // get the vesting schedule
         VestingSchedule storage vestingSchedule = vestingSchedules[company][msg.sender];
 
-        // ensure claimer is beneficiary
+        // ensure claimer is beneficiary - beneficiary is needed to find struct so probably not needed
 
         // ensure the beneficiary has a vesting schedule
-        require(vestingSchedule.totalAmount > 0, "No vesting schedule found"); // NoVestingScheduleFound
+        require(vestingSchedule.totalAmount > 0, NoVestingScheduleFound());
 
         // ensure the beneficiary has not claimed all tokens
-        require(vestingSchedule.claimedAmount < vestingSchedule.totalAmount, "All tokens claimed"); // AllTokensClaimed
+        require(vestingSchedule.claimedAmount < vestingSchedule.totalAmount, AllTokensClaimed());
 
         // calculate the amount of tokens that can be claimed
         uint256 claimableAmount = _calculateClaimableAmount(vestingSchedule);
 
         // ensure the beneficiary has tokens to claim
-        require(claimableAmount > 0, "No tokens to claim"); // NoTokensToClaim
+        require(claimableAmount > 0, NoTokensToClaim());
 
         // update the claimed amount
         vestingSchedule.claimedAmount += claimableAmount;
@@ -164,3 +169,7 @@ contract Vest {
         return claimableAmount;
     }
 }
+
+// Notes
+
+// 1. Add balances for each company - see how much is being held for each company and all their schedules
