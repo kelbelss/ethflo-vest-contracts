@@ -35,16 +35,14 @@ contract Vest {
     // Types
     ///////////////////
 
-    // Mapping - store vesting schedules: Company Address => (Beneficiary Address => VestingSchedule)
-    mapping(address company => mapping(address beneficiary => VestingSchedule)) public vestingSchedules;
+    // Mapping - store vesting schedules: creator Address => (Beneficiary Address => VestingSchedule)
+    mapping(address creator => mapping(address beneficiary => VestingSchedule)) public vestingSchedules;
 
     // structs
 
     // vesting schedule for a beneficiary.
     struct VestingSchedule {
         address token; // Address of company ERC20
-        // address company; // Address of the company creating the schedule
-        // address beneficiary; // Address of beneficiary
         uint256 totalAmount; // Total amount of tokens to be vested
         uint256 startTime; // block.timestamp when vesting begins
         uint256 duration; // Duration of the vesting period (seconds)
@@ -66,7 +64,7 @@ contract Vest {
 
     // @notice Emitted when a new vesting schedule is added
     event TokensVested(
-        address indexed company,
+        address indexed creator,
         address indexed beneficiary,
         address indexed token,
         uint256 amount,
@@ -74,7 +72,7 @@ contract Vest {
         uint256 duration
     );
     // @notice Emitted when tokens are claimed
-    // event TokensClaimed();
+    event TokensClaimed(address indexed creator, address indexed beneficiary, uint256 amountClaimed);
 
     ///////////////////
     // Functions
@@ -107,8 +105,6 @@ contract Vest {
         // create a new vesting schedule
         VestingSchedule memory newVestingSchedule = VestingSchedule({
             token: _token,
-            // company: msg.sender,
-            // beneficiary: _beneficiary,
             totalAmount: _amount,
             startTime: _startTime,
             duration: _duration,
@@ -125,9 +121,9 @@ contract Vest {
         emit TokensVested(msg.sender, _beneficiary, _token, _amount, _startTime, _duration);
     }
 
-    function claimTokens(address company) public {
+    function claimTokens(address creator) public {
         // get the vesting schedule
-        VestingSchedule storage vestingSchedule = vestingSchedules[company][msg.sender];
+        VestingSchedule memory vestingSchedule = vestingSchedules[creator][msg.sender];
 
         // ensure claimer is beneficiary - beneficiary is needed to find struct so probably not needed
 
@@ -142,6 +138,8 @@ contract Vest {
             vestingSchedule.totalAmount, vestingSchedule.startTime, vestingSchedule.duration
         );
 
+        // uint256 claimableAmount = vestingSchedule.calculateClaimableAmount();
+
         // ensure the beneficiary has tokens to claim
         require(claimableAmount > 0, NoTokensToClaim());
 
@@ -149,7 +147,7 @@ contract Vest {
         vestingSchedule.claimedAmount += claimableAmount;
 
         // update the vesting schedule
-        vestingSchedules[company][msg.sender].claimedAmount = claimableAmount;
+        vestingSchedules[creator][msg.sender].claimedAmount = claimableAmount;
 
         // update accounting first
         s_totalEscrowedFunds -= claimableAmount;
@@ -158,22 +156,16 @@ contract Vest {
         vestingSchedule.token.safeTransfer(msg.sender, claimableAmount);
 
         // emit event
-        // emit TokensClaimed();
+        emit TokensClaimed(creator, msg.sender, claimableAmount);
     }
 
-    // function _calculateClaimableAmount(VestingSchedule memory _vestingSchedule) internal view returns (uint256) {
-    //     // calculate the time passed since the vesting began
-    //     uint256 elapsedTime = block.timestamp - _vestingSchedule.startTime;
+    function getVestedDetails(address creator, address beneficiary) public view returns (VestingSchedule memory) {
+        return vestingSchedules[creator][beneficiary];
+    }
 
-    //     // calculate the amount of tokens that can be claimed
-    //     uint256 claimableAmount = (_vestingSchedule.totalAmount * elapsedTime) / _vestingSchedule.duration;
-
-    //     // ensure the claimable amount is not more than the total amount
-
-    //     // ensure the claimable amount is not greater than the remaining amount
-
-    //     return claimableAmount;
-    // }
+    function totalEscrowedFunds() public view returns (uint256) {
+        return s_totalEscrowedFunds;
+    }
 }
 
 // Notes
