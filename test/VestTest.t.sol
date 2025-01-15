@@ -100,6 +100,11 @@ contract VestTest is Test {
         assertEq(mockToken.balanceOf(BENEFICIARY), expectedClaimableAmount, "Beneficiary balance incorrect");
     }
 
+    // function test_claimTokens_fail_NoVestingScheduleFound() public {}
+    // function test_claimTokens_fail_AllTokensClaimed() public {}
+    // function test_claimTokens_fail_NoTokensToClaim() public {}
+    // function test_claimTokens_event_TokensClaimed() public {}
+
     function test_getVestedDetails_success() public {
         addBeneficiary();
         vm.prank(BENEFICIARY);
