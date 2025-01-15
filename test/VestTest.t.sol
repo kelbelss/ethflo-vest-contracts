@@ -10,7 +10,7 @@ contract VestTest is Test {
     Vest public vest;
     ERC20Mock public mockToken;
 
-    address USER = vm.addr(1);
+    address CREATOR = vm.addr(1);
     address BENEFICIARY = vm.addr(2);
 
     uint256 amount = 100 ether;
@@ -21,24 +21,24 @@ contract VestTest is Test {
         mockToken = new ERC20Mock();
         vest = new Vest();
 
-        mockToken.mint(USER, 1000 ether);
+        mockToken.mint(CREATOR, 1000 ether);
     }
 
     function addBeneficiary() public {
-        vm.startPrank(USER);
+        vm.startPrank(CREATOR);
         mockToken.approve(address(vest), amount);
         vest.addBeneficiary(address(mockToken), BENEFICIARY, amount, currentTimestamp, duration);
         vm.stopPrank();
     }
 
     function test_addBeneficiary_success() public {
-        vm.startPrank(USER);
+        vm.startPrank(CREATOR);
         mockToken.approve(address(vest), amount);
         vest.addBeneficiary(address(mockToken), BENEFICIARY, amount, currentTimestamp, duration);
 
         // decompose tuple manually
         (address token, uint256 totalAmount, uint256 startTime, uint256 durationSet, uint256 claimedAmount) =
-            vest.vestingSchedules(USER, BENEFICIARY);
+            vest.vestingSchedules(CREATOR, BENEFICIARY);
 
         // Validate vesting schedule
         assertEq(token, address(mockToken));
@@ -65,14 +65,14 @@ contract VestTest is Test {
         vm.warp(currentTimestamp + duration / 2); // warp to halfway
 
         // get vesting schedule to pass to the library
-        (, uint256 totalAmount, uint256 startTime, uint256 durationSet,) = vest.vestingSchedules(USER, BENEFICIARY);
+        (, uint256 totalAmount, uint256 startTime, uint256 durationSet,) = vest.vestingSchedules(CREATOR, BENEFICIARY);
 
         // calculate the expected claimable amount using the library
         uint256 expectedClaimableAmount = VestMathLib.calculateClaimableAmount(totalAmount, startTime, durationSet);
 
         // call claimTokens
         vm.startPrank(BENEFICIARY);
-        vest.claimTokens(USER);
+        vest.claimTokens(CREATOR);
         vm.stopPrank();
 
         // get updated vesting schedule
@@ -80,7 +80,7 @@ contract VestTest is Test {
         address token;
         uint256 claimedAmount;
 
-        (token, totalAmount, startTime, durationSet, claimedAmount) = vest.vestingSchedules(USER, BENEFICIARY);
+        (token, totalAmount, startTime, durationSet, claimedAmount) = vest.vestingSchedules(CREATOR, BENEFICIARY);
 
         // check the results
         assertEq(token, address(mockToken), "Token address mismatch");
@@ -98,5 +98,18 @@ contract VestTest is Test {
         // check the bene's token balance
         console.log("After Claim - Beneficiary Token Balance:", mockToken.balanceOf(BENEFICIARY));
         assertEq(mockToken.balanceOf(BENEFICIARY), expectedClaimableAmount, "Beneficiary balance incorrect");
+    }
+
+    function test_getVestedDetails_success() public {
+        addBeneficiary();
+        vm.prank(BENEFICIARY);
+
+        Vest.VestingSchedule memory returnedSchedule = vest.getVestedDetails(CREATOR, BENEFICIARY);
+
+        assertEq(returnedSchedule.token, address(mockToken), "Token address mismatch");
+        assertEq(returnedSchedule.totalAmount, amount, "Total amount mismatch");
+        assertEq(returnedSchedule.startTime, currentTimestamp, "Start time mismatch");
+        assertEq(returnedSchedule.duration, duration, "Duration mismatch");
+        assertEq(returnedSchedule.claimedAmount, 0, "Claimed amount mismatch");
     }
 }
