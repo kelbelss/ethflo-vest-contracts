@@ -29,7 +29,11 @@ contract Vest {
     // claimTokens Errors
     error NoVestingScheduleFound();
     error AllTokensClaimed();
+    error VestingScheduleRevoked();
     error NoTokensToClaim();
+
+    // revokeVestingSchedule Errors
+    error VestingScheduleNotRevocable();
 
     ///////////////////
     // Types
@@ -48,6 +52,9 @@ contract Vest {
         uint256 duration; // Duration of the vesting period (seconds)
         // uint256 cliffDuration; // Duration of the cliff period (seconds)
         uint256 claimedAmount; // Amount of tokens already claimed
+        bool isRevocable; // Whether the vesting is revocable
+        bool revoked; // Whether the vesting is revoked
+        bool isDepleted; // Whether the vesting is depleted
     }
 
     ///////////////////
@@ -87,7 +94,8 @@ contract Vest {
         address _beneficiary,
         uint256 _amount,
         uint256 _startTime,
-        uint256 _duration
+        uint256 _duration,
+        bool _isRevocable
     ) public {
         // ensure amount is above 0
         require(_amount > 0, AmountTooLow(_amount));
@@ -108,7 +116,10 @@ contract Vest {
             totalAmount: _amount,
             startTime: _startTime,
             duration: _duration,
-            claimedAmount: 0
+            claimedAmount: 0,
+            isRevocable: _isRevocable,
+            revoked: false,
+            isDepleted: false
         });
 
         // add the new vesting schedule to the mapping
@@ -122,7 +133,7 @@ contract Vest {
     }
 
     function claimTokens(address creator) public {
-        // get the vesting schedule
+        // get the vesting schedule - change to SLOAD operations to save gas - uint256 _duration = vestingSchedules[creator][msg.sender].duration;
         VestingSchedule memory vestingSchedule = vestingSchedules[creator][msg.sender];
 
         // ensure claimer is beneficiary - beneficiary is needed to find struct so probably not needed
@@ -131,7 +142,10 @@ contract Vest {
         require(vestingSchedule.totalAmount > 0, NoVestingScheduleFound());
 
         // ensure the beneficiary has not claimed all tokens
-        require(vestingSchedule.claimedAmount < vestingSchedule.totalAmount, AllTokensClaimed());
+        require(!vestingSchedule.isDepleted, AllTokensClaimed());
+
+        // ensure the vesting schedule has not been revoked
+        // require(!vestingSchedule.revoked, VestingScheduleRevoked());
 
         // calculate the amount of tokens that can be claimed
         uint256 claimableAmount = VestMathLib.calculateClaimableAmount(
@@ -157,6 +171,28 @@ contract Vest {
 
         // emit event
         emit TokensClaimed(creator, msg.sender, claimableAmount);
+    }
+
+    function revokeVestingSchedule(address beneficiary) public {
+        // get the vesting schedule
+        VestingSchedule memory vestingSchedule = vestingSchedules[msg.sender][beneficiary];
+
+        // ensure the beneficiary has a vesting schedule
+        require(vestingSchedule.totalAmount > 0, NoVestingScheduleFound());
+
+        // ensure the vesting schedule is revocable
+        require(vestingSchedule.isRevocable, VestingScheduleNotRevocable());
+
+        // ensure the vesting schedule has not been revoked
+        require(!vestingSchedule.revoked, VestingScheduleRevoked());
+
+        // update the vesting schedule
+        vestingSchedules[msg.sender][beneficiary].revoked = true;
+
+        // calculate the amount of tokens that can be claimed
+        uint256 claimableAmount = VestMathLib.calculateClaimableAmount(
+            vestingSchedule.totalAmount, vestingSchedule.startTime, vestingSchedule.duration
+        );
     }
 
     function getVestedDetails(address creator, address beneficiary) public view returns (VestingSchedule memory) {
