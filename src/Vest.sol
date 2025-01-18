@@ -193,6 +193,23 @@ contract Vest {
         uint256 claimableAmount = VestMathLib.calculateClaimableAmount(
             vestingSchedule.totalAmount, vestingSchedule.startTime, vestingSchedule.duration
         );
+
+        // check creator amount due
+
+        uint256 creatorRefund = vestingSchedule.totalAmount - claimableAmount;
+
+        // check bebneficiary amount due
+
+        uint256 beneficiaryRefund = claimableAmount - vestingSchedule.claimedAmount;
+
+        // mark as depleted if bene = 0
+
+        // refund creator
+
+        // allow beneficiary to claim remaining tokens - leave require out of claimTokens
+
+        // update accounting
+        // s_totalEscrowedFunds -= vestingSchedule.totalAmount;
     }
 
     function getVestedDetails(address creator, address beneficiary) public view returns (VestingSchedule memory) {
