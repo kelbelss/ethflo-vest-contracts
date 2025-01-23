@@ -224,3 +224,4 @@ contract Vest {
 // Notes
 
 // 1. Add balances for each company - see how much is being held for each company and all their schedules
+// 2. Audit as you go
