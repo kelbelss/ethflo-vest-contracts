@@ -9,7 +9,7 @@ import {SafeTransferLib} from "lib/solady/src/utils/SafeTransferLib.sol";
  * @title EthFlo Vest
  * @author Kelbels
  *
- * Explanation
+ * 
  *
  * @notice 
  * @notice 
@@ -179,6 +179,11 @@ contract Vest {
         // update accounting first
         s_totalEscrowedFunds -= claimableAmount;
 
+        // if isRevoked is true, mark as depleted - this helps revokeVestingSchedule flow
+        if (vestingSchedule.revoked) {
+            vestingSchedule.isDepleted = true;
+        }
+
         // solady for gas efficiency
         vestingSchedule.token.safeTransfer(msg.sender, claimableAmount);
 
@@ -212,21 +217,23 @@ contract Vest {
         );
 
         // check creator amount due
-
         uint256 creatorRefund = vestingSchedule.totalAmount - claimableAmount;
 
         // check bebneficiary amount due
-
         uint256 beneficiaryRefund = claimableAmount - vestingSchedule.claimedAmount;
 
         // mark as depleted if bene = 0
+        if (beneficiaryRefund == 0) {
+            vestingSchedule.isDepleted = true;
+        }
 
         // refund creator
+        vestingSchedule.token.safeTransfer(msg.sender, creatorRefund);
 
         // allow beneficiary to claim remaining tokens - leave require out of claimTokens
 
         // update accounting
-        // s_totalEscrowedFunds -= vestingSchedule.totalAmount;
+        s_totalEscrowedFunds -= creatorRefund;
     }
 
     /*
