@@ -89,6 +89,15 @@ contract Vest {
         owner = msg.sender;
     }
 
+    /*
+     * @notice This function allows a creator to add a new beneficiary to a new vesting schedule.
+     * @param _token The address of the token to be vested.
+     * @param _beneficiary The address of the beneficiary.
+     * @param _amount The total amount of tokens to be vested.
+     * @param _startTime The block.timestamp when the vesting begins.
+     * @param _duration The duration of the vesting period (seconds).
+     * @param _isRevocable Whether the vesting is revocable.
+     */
     function addBeneficiary(
         address _token,
         address _beneficiary,
@@ -132,6 +141,10 @@ contract Vest {
         emit TokensVested(msg.sender, _beneficiary, _token, _amount, _startTime, _duration);
     }
 
+    /*
+     * @notice This function allows a beneficiary to claim their vested tokens.
+     * @param creator The address of the creator.
+     */
     function claimTokens(address creator) public {
         // get the vesting schedule - change to SLOAD operations to save gas - uint256 _duration = vestingSchedules[creator][msg.sender].duration;
         VestingSchedule memory vestingSchedule = vestingSchedules[creator][msg.sender];
@@ -173,6 +186,10 @@ contract Vest {
         emit TokensClaimed(creator, msg.sender, claimableAmount);
     }
 
+    /*
+     * @notice This function allows a creator to revoke a beneficiary's vesting schedule.
+     * @param beneficiary The address of the beneficiary.
+     */
     function revokeVestingSchedule(address beneficiary) public {
         // get the vesting schedule
         VestingSchedule memory vestingSchedule = vestingSchedules[msg.sender][beneficiary];
@@ -212,10 +229,20 @@ contract Vest {
         // s_totalEscrowedFunds -= vestingSchedule.totalAmount;
     }
 
+    /*
+     * @notice This function allows a creator to get the details of a beneficiary's vesting schedule.
+     * @param creator The address of the creator.
+     * @param beneficiary The address of the beneficiary.
+     * @return VestingSchedule The vesting schedule.
+     */
     function getVestedDetails(address creator, address beneficiary) public view returns (VestingSchedule memory) {
         return vestingSchedules[creator][beneficiary];
     }
 
+    /*
+     * @notice This function allows a creator to get the total amount of escrowed funds.
+     * @return uint256 The total amount of escrowed funds.
+     */
     function totalEscrowedFunds() public view returns (uint256) {
         return s_totalEscrowedFunds;
     }
