@@ -259,3 +259,11 @@ contract Vest {
 
 // 1. Add balances for each company - see how much is being held for each company and all their schedules
 // 2. Audit as you go
+
+// 3. TODO:
+// - Add a function to get all beneficiaries for a creator
+// - CliffDuration:
+// - add to addBeneficiary (figure out functionality)
+// - add to VestingSchedule struct
+// - add to calculateClaimableAmount
+// - add to revokeVestingSchedule calculations?
